@@ -1,0 +1,17 @@
+<Configuration>
+  <Add OfficeClientEdition="32"
+       Channel="Broad" >
+    <Product ID="O365ProPlusRetail">
+      <Language ID="en-us" />
+      <ExcludeApp ID="Publisher" />
+      <ExcludeApp ID="Groove" />
+      <ExcludeApp ID="Lync" />
+    </Product>
+    <Product ID="VisioProRetail">
+      <Language ID="en-us" />
+    </Product>
+  </Add>
+
+  <Display Level="None" AcceptEULA="TRUE" />  
+  <Logging Level="Standard" Path="%temp%" /> 
+</Configuration>
