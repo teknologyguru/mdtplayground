@@ -41,7 +41,7 @@ icacls E:\Logs /grant '"MDT_BA":(OI)(CI)(M)'
 
 # Create Deployment Share
 # Configure Permissions for Deployment Share
-icacls E:\MDTBuildLab\Captures /grant '"MDT_BA":(OI)(CI)(M)'
+icacls E:\MDTBuildLab\ /grant '"MDT_BA":(OI)(CI)(M)'
 
 # New folders for OSes
 Import-Module "C:\Program Files\Microsoft Deployment Toolkit\bin\MicrosoftDeploymentToolkit.psd1"
