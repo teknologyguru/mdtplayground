@@ -26,6 +26,7 @@ Contoso
         Admins
         Service Accounts
             # MDT_BA user
+            # MDT_JD user
         Users
     Computers
         Servers
@@ -58,3 +59,36 @@ import-MDTApplication -path "DS001:\Applications\Microsoft" -enable "True" -Name
 # Make Task Sequence
 new-item -path "DS001:\Task Sequences" -enable "True" -Name "Windows 10" -Comments "" -ItemType "folder" -Verbose
 import-mdttasksequence -path "DS001:\Task Sequences\Windows 10" -Name "Windows 10 Pro x64 Default Image" -Template "Client.xml" -Comments "Reference Build" -ID "REFW10X64-001" -Version "1.0" -OperatingSystemPath "DS001:\Operating Systems\Windows 10\Windows 10 Pro in W10PROx64 install.wim" -FullName "Contoso" -OrgName "Contoso" -HomePage "https://www.djvc.net" -Verbose
+
+# Provision VM, save to Capture
+
+#
+
+# Add MDT_JD account
+
+# Configure permissions
+& .\set-oupermissions.ps1 -Account MDT_JD -TargetOU "OU=Workstations,OU=Computers,OU=Contoso"
+
+# Add Production Share
+New-Item -Path "C:\MDTProduction" -ItemType directory
+New-SmbShare -Name "MDTProduction$" -Path "C:\MDTProduction" -FullAccess Administrators
+Import-Module "C:\Program Files\Microsoft Deployment Toolkit\bin\MicrosoftDeploymentToolkit.psd1"
+new-PSDrive -Name "DS002" -PSProvider "MDTProvider" -Root "C:\MDTProduction" -Description "MDT Production" -NetworkPath "\\WIN-SKTS1GJA4UN\MDTProduction$" -Verbose | add-MDTPersistentDrive -Verbose
+
+# Folder for Win10
+new-item -path "DS002:\Operating Systems" -enable "True" -Name "Windows 10" -Comments "" -ItemType "folder" -Verbose
+# Import the WIM
+import-mdtoperatingsystem -path "DS002:\Operating Systems\Windows 10" -SourceFile "C:\MDTBuildLab\Captures\REFW10X64-001.wim" -DestinationFolder "W10PROx64" -SetupPath "C:\MDTBuildLab\Operating Systems\W10PROx64" -Verbose
+
+# Additional Application
+new-item -path "DS002:\Applications" -enable "True" -Name "Mozilla" -Comments "" -ItemType "folder" -Verbose
+import-MDTApplication -path "DS002:\Applications\Mozilla" -enable "True" -Name "Mozilla Install - Firefox - x86" -ShortName "Install - Firefox - x86" -Version "" -Publisher "Mozilla" -Language "" -CommandLine "NiniteFirefox.exe" -WorkingDirectory ".\Applications\Install - Mozilla Firefox - x86" -ApplicationSourcePath "C:\Downloads\Firefox" -DestinationFolder "Install - Mozilla Firefox - x86" -Verbose
+
+# Task Sequence
+new-item -path "DS002:\Task Sequences" -enable "True" -Name "Windows 10" -Comments "" -ItemType "folder" -Verbose
+import-mdttasksequence -path "DS002:\Task Sequences\Windows 10" -Name "Windows 10 Pro x64 Custom Image" -Template "Client.xml" -Comments "" -ID "W10-X64-001" -Version "1.0" -OperatingSystemPath "DS002:\Operating Systems\Windows 10\Windows 10 Pro x64 Custom Image" -FullName "Contoso" -OrgName "Contoso" -HomePage "https://www.djvc.net" -Verbose
+
+# Fiddling, then update the share
+update-MDTDeploymentShare -path "DS002:" -Verbose
+
+icacls E:\MDTProduction /grant '"MDT_BA":(OI)(CI)(M)'
